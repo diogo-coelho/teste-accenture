@@ -15,6 +15,14 @@ function qualidadeCodigo (cb) {
     cb();
 }
 
+function minificarApp(cb) {
+    gulp.src('./app/**/*.js')
+    .pipe(terser())
+    .pipe(gulp.dest('./build/app'));
+
+    cb();
+}
+
 function minificarConfiguracoes(cb) {
     gulp.src('./configuracoes/*.js')
     .pipe(terser())
@@ -24,4 +32,4 @@ function minificarConfiguracoes(cb) {
 }
 
 exports.eslint = gulp.series(qualidadeCodigo);
-exports.build = gulp.series(qualidadeCodigo, minificarConfiguracoes);
+exports.build = gulp.series(qualidadeCodigo, minificarConfiguracoes, minificarApp);
