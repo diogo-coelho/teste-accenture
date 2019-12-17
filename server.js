@@ -5,4 +5,6 @@ const mongoose = require(path.join(__dirname, "build", "./configuracoes/database
 
 const server = application.listen(application.get("port"), () => {
     console.log(`Aplicação rodando na porta ${ application.get("port") }`);
-})
+});
+
+module.exports = server;

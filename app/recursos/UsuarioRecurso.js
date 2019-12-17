@@ -16,53 +16,54 @@ module.exports = (app) => {
                     || !ValidaParametros.validaSenha(req.body.senha)
                     || !ValidaParametros.validaTelefones(req.body.telefones)) {
                         res.status(400).json({ "mensagem": "Parâmetros incorretos" });
-                }
-                // Configura as variáveis
-                var nome = req.body.nome;
-                var email = req.body.email;
-                var senha = hash_password.generate(req.body.senha);
-                var telefones = req.body.telefones;
-
-                // Instancia o serviço de usuário
-                var usuarioServico = app.servicos.UsuarioServico;
-                var emailExistente = await usuarioServico.encontraUsuarioPeloEmail(email).then((retorno) => {
-                    // Verifica se o email já existe no banco de dados
-                    return retorno;
-                });
-
-                // Verifica se o email informado já existe no banco de dados
-                if (emailExistente) {
-                    // Enviando resposta com o erro já que o email já existe no BD
-                    res.status(400).json({ "mensagem": "Email já existente" });
                 } else {
-                    usuarioServico.cadastraUsuario(nome, email, senha, telefones).then((usuarioCadastrado) => {
-                        if (!usuarioCadastrado) throw new Error(`Não foi possível cadastrar o usuário`);
-                        
-                        var payload = { _id: usuarioCadastrado._id };
-                        var token = jwt.encode(payload, process.env.AUTH_SECRET);                                    
-                        var parametros = { token: token };
+                    // Configura as variáveis
+                    var nome = req.body.nome;
+                    var email = req.body.email;
+                    var senha = hash_password.generate(req.body.senha);
+                    var telefones = req.body.telefones;
 
-                        // Insere o valor do token no objeto Usuário
-                        usuarioServico.atualizaUsuario(usuarioCadastrado._id, parametros).then((usuario) => {
-                            if (usuario) {
-                                // Enviando a resposta com o JSON de resposta com o usuário criado
-                                res.status(201).json({
-                                    "id": usuario._id,
-                                    "nome": usuario.nome,
-                                    "email": usuario.email,
-                                    "senha": usuario.senha,
-                                    "telefones": usuario.telefones,
-                                    "data_criacao": moment(usuario.data_criacao).format('DD-MM-YYYY HH:mm:ss'),
-                                    "data_atualizacao": moment(usuario.data_atualizacao).format('DD-MM-YYYY HH:mm:ss'),
-                                    "ultimo_login": moment(usuario.ultimo_login).format('DD-MM-YYYY HH:mm:ss'),
-                                    "token": usuario.token
-                                });
-                            } else {
-                                // Enviando resposta com o erro 500 e mensagem de erro
-                                throw new Error(`Ocorreu um erro no cadastro`);
-                            }
-                        });
+                    // Instancia o serviço de usuário
+                    var usuarioServico = app.servicos.UsuarioServico;
+                    var emailExistente = await usuarioServico.encontraUsuarioPeloEmail(email).then((retorno) => {
+                        // Verifica se o email já existe no banco de dados
+                        return retorno;
                     });
+
+                    // Verifica se o email informado já existe no banco de dados
+                    if (emailExistente) {
+                        // Enviando resposta com o erro já que o email já existe no BD
+                        res.status(400).json({ "mensagem": "Email já existente" });
+                    } else {
+                        usuarioServico.cadastraUsuario(nome, email, senha, telefones).then((usuarioCadastrado) => {
+                            if (!usuarioCadastrado) throw new Error(`Não foi possível cadastrar o usuário`);
+                            
+                            var payload = { _id: usuarioCadastrado._id };
+                            var token = jwt.encode(payload, process.env.AUTH_SECRET);                                    
+                            var parametros = { token: token };
+
+                            // Insere o valor do token no objeto Usuário
+                            usuarioServico.atualizaUsuario(usuarioCadastrado._id, parametros).then((usuario) => {
+                                if (usuario) {
+                                    // Enviando a resposta com o JSON de resposta com o usuário criado
+                                    res.status(201).json({
+                                        "id": usuario._id,
+                                        "nome": usuario.nome,
+                                        "email": usuario.email,
+                                        "senha": usuario.senha,
+                                        "telefones": usuario.telefones,
+                                        "data_criacao": moment(usuario.data_criacao).format('DD-MM-YYYY HH:mm:ss'),
+                                        "data_atualizacao": moment(usuario.data_atualizacao).format('DD-MM-YYYY HH:mm:ss'),
+                                        "ultimo_login": moment(usuario.ultimo_login).format('DD-MM-YYYY HH:mm:ss'),
+                                        "token": usuario.token
+                                    });
+                                } else {
+                                    // Enviando resposta com o erro 500 e mensagem de erro
+                                    throw new Error(`Ocorreu um erro no cadastro`);
+                                }
+                            });
+                        });
+                    }
                 }
                 
             } catch (err) {
@@ -90,37 +91,37 @@ module.exports = (app) => {
                     if (!usuarioEncontrado) {
                         // Email não encontrado / Usuário não autorizado
                         res.status(401).json({"mensagem":"Usuário e/ou senha inválidos"});
-                    }
-
-                    // Verifica se o hash de senhas conferem entre si
-                    if (hash_password.verify(senha, usuarioEncontrado.senha)){
-                        var payload = { _id: usuarioEncontrado._id };
-                        var token = jwt.encode(payload, process.env.AUTH_SECRET);
-                        // Passa os parâmetros que serão atualizados no BD
-                        var parametros = {
-                            token: token,
-                            data_atualizacao: moment(Date().now).format('YYYY-MM-DD HH:mm:ss'),
-                            ultimo_login: moment(Date().now).format('YYYY-MM-DD HH:mm:ss')
-                        };
-
-                        usuarioServico.atualizaUsuario(usuarioEncontrado._id, parametros).then((usuario) => {
-                            if (!usuario) throw new Error(`Ocorreu um erro ao realizar a atualização`);
-                            // Enviando a resposta com o JSON
-                            res.status(200).json({
-                                "id": usuario._id,
-                                "nome": usuario.nome,
-                                "email": usuario.email,
-                                "senha": usuario.senha,
-                                "telefones": usuario.telefones,
-                                "data_criacao": moment(usuario.data_criacao).format('DD-MM-YYYY HH:mm:ss'),
-                                "data_atualizacao": moment(usuario.data_atualizacao).format('DD-MM-YYYY HH:mm:ss'),
-                                "ultimo_login": moment(usuario.ultimo_login).format('DD-MM-YYYY HH:mm:ss'),
-                                "token": usuario.token
-                            });
-                        });
                     } else {
-                        // Email não encontrado / Usuário não autorizado
-                        res.status(401).json({"mensagem":"Usuário e/ou senha inválidos"});
+                        // Verifica se o hash de senhas conferem entre si
+                        if (hash_password.verify(senha, usuarioEncontrado.senha)){
+                            var payload = { _id: usuarioEncontrado._id };
+                            var token = jwt.encode(payload, process.env.AUTH_SECRET);
+                            // Passa os parâmetros que serão atualizados no BD
+                            var parametros = {
+                                token: token,
+                                data_atualizacao: moment(Date().now).format('YYYY-MM-DD HH:mm:ss'),
+                                ultimo_login: moment(Date().now).format('YYYY-MM-DD HH:mm:ss')
+                            };
+
+                            usuarioServico.atualizaUsuario(usuarioEncontrado._id, parametros).then((usuario) => {
+                                if (!usuario) throw new Error(`Ocorreu um erro ao realizar a atualização`);
+                                // Enviando a resposta com o JSON
+                                res.status(200).json({
+                                    "id": usuario._id,
+                                    "nome": usuario.nome,
+                                    "email": usuario.email,
+                                    "senha": usuario.senha,
+                                    "telefones": usuario.telefones,
+                                    "data_criacao": moment(usuario.data_criacao).format('DD-MM-YYYY HH:mm:ss'),
+                                    "data_atualizacao": moment(usuario.data_atualizacao).format('DD-MM-YYYY HH:mm:ss'),
+                                    "ultimo_login": moment(usuario.ultimo_login).format('DD-MM-YYYY HH:mm:ss'),
+                                    "token": usuario.token
+                                });
+                            });
+                        } else {
+                            // Email não encontrado / Usuário não autorizado
+                            res.status(401).json({"mensagem":"Usuário e/ou senha inválidos"});
+                        }
                     }
                 });
             } catch (err) {
