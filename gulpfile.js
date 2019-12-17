@@ -9,4 +9,4 @@ function minificarConfiguracoes(cb) {
     cb();
 }
 
-module.exports = gulp.series(minificarConfiguracoes);
+exports.build = gulp.series(minificarConfiguracoes);

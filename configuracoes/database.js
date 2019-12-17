@@ -2,12 +2,13 @@ var mongoose = require("mongoose");
 
 module.exports = (uri) => {
     "use strict";
-
+    
     mongoose.set("useCreateIndex");
     mongoose.connect(uri, {
         useNewUrlParser: true,
         keepAlive: true,
-        useFindAndModify: false
+        useFindAndModify: false,
+        useUnifiedTopology: true
     });
 
     mongoose.connection.on(`connected`, () => {
