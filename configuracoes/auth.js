@@ -30,4 +30,4 @@ module.exports = () => {
             return passport.authenticate("jwt", { failureRedirect: '/usuario/unauthorized', session: false });
         }
     };
-}
+};

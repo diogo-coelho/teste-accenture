@@ -1,8 +1,8 @@
 var mongoose = require("mongoose");
 
 module.exports = uri => {   
-    mongoose.set("useCreateIndex");
     mongoose.connect(uri, {
+        useCreateIndex: true,
         useNewUrlParser: true,
         keepAlive: true,
         useFindAndModify: false,
