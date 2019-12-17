@@ -1,8 +1,6 @@
 var mongoose = require("mongoose");
 
-module.exports = (uri) => {
-    "use strict";
-    
+module.exports = uri => {   
     mongoose.set("useCreateIndex");
     mongoose.connect(uri, {
         useNewUrlParser: true,
@@ -28,7 +26,7 @@ module.exports = (uri) => {
     process.on(`SIGNIT`, () => {
         mongoose.connection.close(() => {
             console.log(`Conexão com o MongoDB encerrada`);
-            process.exit(0)
+            process.exit(0);
         });
     });
 };
